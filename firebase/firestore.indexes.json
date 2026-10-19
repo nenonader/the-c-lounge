@@ -1,0 +1,123 @@
+{
+  "x-signature": "Made By Eng Nayer Nader",
+  "x-note": "Composite indexes for the v72 operational queries. Firestore serves single-field equality and single-field ordering without an index; everything below is a composite the console will otherwise refuse.",
+  "indexes": [
+    {
+      "//": "Find degraded conversations: which visitors got a holding reply, newest first.",
+      "collectionGroup": "chat_turns",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "degraded", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "//": "Per-path volume over time: how many turns Claude actually served.",
+      "collectionGroup": "chat_turns",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "servedBy", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "//": "Every turn of one conversation, in order.",
+      "collectionGroup": "chat_turns",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "conversationId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "//": "Failure triage: group by cause, newest first.",
+      "collectionGroup": "chat_turns",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "failure", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "//": "Conversations that reached a handoff, newest first.",
+      "collectionGroup": "conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "handoffReady", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "//": "Conversations by discipline, newest first.",
+      "collectionGroup": "conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "service", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "//": "Conversations by market, newest first.",
+      "collectionGroup": "conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "country", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "//": "Transcript order within a conversation.",
+      "collectionGroup": "messages",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "role", "order": "ASCENDING" },
+        { "fieldPath": "sequence", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "//": "Analytics events by type over time.",
+      "collectionGroup": "analytics_events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "eventType", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "//": "Analytics events for one visitor, in order.",
+      "collectionGroup": "analytics_events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "visitorId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "//": "Security events by kind, newest first.",
+      "collectionGroup": "security_events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "kind", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "//": "Inquiries by desk, newest first.",
+      "collectionGroup": "inquiries",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "deskId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": [
+    {
+      "//": "expiresAt drives Firestore TTL deletion. Configure the TTL policy on this field for each collection in the console: Firestore -> Time-to-live.",
+      "collectionGroup": "chat_turns",
+      "fieldPath": "expiresAt",
+      "ttl": true,
+      "indexes": []
+    }
+  ]
+}

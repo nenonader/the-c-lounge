@@ -1,0 +1,7 @@
+# Made By Eng Nayer Nader
+.env
+.env.*
+!.env.example
+node_modules/
+config/serviceAccountKey.json
+*.log

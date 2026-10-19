@@ -1,0 +1,180 @@
+/* ==========================================================================
+   THE C LOUNGE — v73 refinement layer
+   Made By Eng Nayer Nader
+
+   Loaded last, after main.css and mobile-elite.css, so it refines rather than
+   forks. Nothing here changes the identity: the palette, the Fraunces display
+   face and the dark-and-gold register are all inherited. What it fixes is the
+   craft — the concierge panel's waiting and failure states, focus visibility,
+   tap-target sizes, and the handful of places where a 320px screen or a
+   400% zoom broke the layout.
+   ========================================================================== */
+
+:root {
+  --cl-ring: 0 0 0 2px var(--bg-deep), 0 0 0 4px var(--gold-soft);
+  --cl-chat-radius: 4px;
+  --cl-motion: 0.32s var(--ease-out);
+}
+
+/* --------------------------------------------------------------------------
+   1. FOCUS VISIBILITY
+   main.css already ships a good :focus-visible ring and skip link. The only
+   gap was that a focus ring drawn *inside* the scrolling chat transcript was
+   clipped by the panel's overflow, so a keyboard visitor tabbing to an action
+   link inside a bubble saw nothing.
+   -------------------------------------------------------------------------- */
+
+.chat-body { scroll-padding: 8px; }
+.chat-body :focus-visible { outline-offset: 2px; }
+
+/* --------------------------------------------------------------------------
+   2. THE CONCIERGE PANEL
+   -------------------------------------------------------------------------- */
+
+.chat-copy { display: block; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.chat-msg {
+  border-radius: var(--cl-chat-radius);
+  /* A long unbroken string — a URL, an aircraft registration — used to widen
+     the bubble past the panel and clip the close button. */
+  overflow-wrap: anywhere;
+  animation: clChatIn 0.34s var(--ease-out) both;
+}
+@keyframes clChatIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.chat-msg.bot  { border-radius: var(--cl-chat-radius) var(--cl-chat-radius) var(--cl-chat-radius) 1px; }
+.chat-msg.user { border-radius: var(--cl-chat-radius) var(--cl-chat-radius) 1px var(--cl-chat-radius); }
+
+/* The considering indicator. v72 showed an empty bubble with a blinking caret
+   for the whole of a 30-60s cold start, which reads as a broken widget. */
+.chat-thinking {
+  padding: 15px 18px;
+  min-height: 0;
+}
+.chat-dots { display: inline-flex; gap: 5px; align-items: center; }
+.chat-dots i {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--gold-soft);
+  animation: clDot 1.15s ease-in-out infinite;
+}
+.chat-dots i:nth-child(2) { animation-delay: 0.16s; }
+.chat-dots i:nth-child(3) { animation-delay: 0.32s; }
+@keyframes clDot {
+  0%, 60%, 100% { opacity: 0.25; transform: translateY(0); }
+  30%           { opacity: 1;    transform: translateY(-3px); }
+}
+
+.chat-msg.is-error {
+  border-color: rgba(217, 189, 134, 0.34);
+  background: rgba(217, 189, 134, 0.07);
+}
+
+.chat-action.is-retry {
+  display: inline-block;
+  margin-top: 11px;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+/* The composer grows with the message instead of hiding it behind a 1-row
+   window. The cap keeps the transcript visible. */
+.chat-composer textarea {
+  resize: none;
+  max-height: 132px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.chat-composer button { transition: color var(--cl-motion), background var(--cl-motion); }
+.chat-panel.is-busy .chat-composer button { cursor: progress; }
+
+.chat-header .ch-status[data-mode="degraded"] { color: var(--text-faint); }
+
+/* Comfortable, thumb-sized controls on touch devices, without changing the
+   desktop proportions. */
+@media (hover: none) and (pointer: coarse) {
+  .chat-toggle { min-width: 56px; min-height: 56px; }
+  .chat-header button { min-width: 44px; min-height: 44px; }
+  .chat-composer button { min-height: 48px; }
+}
+
+/* 320px — the narrowest phone still in real use. The panel used to overflow
+   the viewport and take the close button with it. */
+@media (max-width: 360px) {
+  .chat-panel { left: 8px; right: 8px; }
+  .chat-msg { max-width: 90%; font-size: 12.5px; }
+  .chat-quick button { font-size: 10px; }
+}
+
+/* Landscape phones: a 380px-tall viewport left no room for the transcript. */
+@media (max-height: 460px) and (orientation: landscape) {
+  .chat-panel { top: 8px; bottom: 8px; max-height: calc(100dvh - 16px); }
+  .chat-body { max-height: none; flex: 1 1 auto; }
+  .chat-quick { display: none; }
+}
+
+/* --------------------------------------------------------------------------
+   3. TYPOGRAPHY AND RHYTHM
+   Small, deliberate corrections rather than a new scale.
+   -------------------------------------------------------------------------- */
+
+body { text-rendering: optimizeLegibility; }
+
+h1, h2, h3, h4 { text-wrap: balance; }
+p, li { text-wrap: pretty; }
+
+/* Stop a long word or an email address forcing a horizontal scrollbar on the
+   whole document at narrow widths. */
+h1, h2, h3, h4, p, li, a, td, th { overflow-wrap: break-word; }
+
+/* Honour the visitor's own text size at 200-400% zoom: the fixed 16px body
+   size prevented the browser's own scaling from taking effect on some
+   Android configurations. */
+@media (max-width: 480px) {
+  body { font-size: clamp(15px, 4.1vw, 17px); }
+}
+
+/* --------------------------------------------------------------------------
+   4. IMAGES AND LAYOUT SAFETY
+   -------------------------------------------------------------------------- */
+
+img, video { max-width: 100%; height: auto; }
+/* Nothing on this site should ever scroll sideways. */
+html, body { max-width: 100%; }
+
+table { display: block; overflow-x: auto; max-width: 100%; }
+
+/* --------------------------------------------------------------------------
+   5. MOTION
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .chat-dots i { animation: none; opacity: 0.7; }
+  .chat-msg { animation: none; }
+}
+
+/* --------------------------------------------------------------------------
+   6. FORCED COLOURS / HIGH CONTRAST
+   -------------------------------------------------------------------------- */
+
+@media (forced-colors: active) {
+  .chat-msg, .chat-panel, .chat-toggle { border: 1px solid CanvasText; }
+  .chat-action { forced-color-adjust: none; }
+}
+
+/* --------------------------------------------------------------------------
+   7. PRINT
+   -------------------------------------------------------------------------- */
+
+@media print {
+  .chat-widget, .grain, .preloader { display: none !important; }
+  body { background: #fff; color: #111; }
+}

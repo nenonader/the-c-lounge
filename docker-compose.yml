@@ -1,0 +1,26 @@
+# Made By Eng Nayer Nader
+services:
+  ai:
+    build:
+      context: .
+      dockerfile: ai-service/Dockerfile
+    env_file: ai-service/.env
+    volumes:
+      - ./ai-service/models:/app/models:ro
+    expose:
+      - "8001"
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file: backend/.env
+    environment:
+      AI_SERVICE_URL: http://ai:8001
+      STATIC_SITE_ROOT: /app/public
+    depends_on:
+      - ai
+    ports:
+      - "3001:3001"
+    restart: unless-stopped

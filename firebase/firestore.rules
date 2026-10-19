@@ -1,0 +1,40 @@
+// Made By Eng Nayer Nader
+// The C Lounge — Firestore security rules (v72).
+//
+// Posture: the database is server-only. Every write comes from the Node backend
+// using the Firebase Admin SDK, which bypasses these rules entirely. No browser
+// and no mobile client ever holds a Firebase credential for this project, so the
+// correct rule for every client-side path is "deny".
+//
+// This is deliberately not "deny by default with a few holes". There are no
+// holes. If a future feature needs client reads, add ONE narrowly scoped match
+// block below and write a test for it; do not loosen the catch-all.
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Transcripts, briefs, analytics, telemetry and security events all contain
+    // visitor data. None of it is client-readable.
+    match /conversations/{conversationId} {
+      allow read, write: if false;
+      match /messages/{messageId} {
+        allow read, write: if false;
+      }
+    }
+
+    match /chat_turns/{turnId}          { allow read, write: if false; }
+    match /inquiries/{inquiryId}        { allow read, write: if false; }
+    match /analytics_events/{eventId}   { allow read, write: if false; }
+    match /analytics_sessions/{id}      { allow read, write: if false; }
+    match /visitor_sessions/{id}        { allow read, write: if false; }
+    match /audit_events/{id}            { allow read, write: if false; }
+    match /routing_logs/{id}            { allow read, write: if false; }
+    match /security_events/{id}         { allow read, write: if false; }
+
+    // Catch-all. Anything not named above is also denied.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,41 @@
+# Made By Eng Nayer Nader — The C Lounge
+node_modules/
+.next/
+dist/
+# build/ removed: the repo has a real build/ source folder
+.DS_Store
+*.log
+
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+!**/.env.example
+**/serviceAccountKey.json
+**/*serviceAccount*.json
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+ai-service/models/
+
+# --- v72: never ship credentials in an archive again ---
+*.env
+.env
+.env.*
+!*.env.example
+serviceAccountKey.json
+**/serviceAccountKey.json
+*serviceAccount*.json
+clounge-ai.env
+clounge-web.env
+
+# --- v73 ---
+# Playwright / audit artefacts
+.playwright/
+*.zip
+

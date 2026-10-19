@@ -1,0 +1,5 @@
+# Made By Eng Nayer Nader
+User-agent: *
+Allow: /
+
+Sitemap: https://www.thecloungeworld.com/sitemap.xml

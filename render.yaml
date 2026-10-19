@@ -1,0 +1,207 @@
+# Made By Eng Nayer Nader
+# The C Lounge — Render blueprint (two services, one private repo).
+# Secrets are marked sync:false so Render never stores them in git.
+
+services:
+  # ---------------------------------------------------------------------------
+  # clounge-web — static site + private API (Node)
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: clounge-web
+    runtime: node
+    plan: starter
+    region: frankfurt
+    branch: main
+    rootDir: backend
+    buildCommand: npm ci --omit=dev
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: STATIC_SITE_ROOT
+        value: ../public
+      - key: TRUST_PROXY
+        value: "true"
+      - key: FORCE_HTTPS
+        value: "true"
+      - key: ALLOWED_ORIGINS
+        value: https://clounge-web.onrender.com,https://www.thecloungeworld.com,https://thecloungeworld.com
+      - key: AI_SERVICE_URL
+        value: https://clounge-ai.onrender.com
+      - key: AI_ROUTING_ENABLED
+        value: "true"
+      - key: AI_ROUTING_MIN_CONFIDENCE
+        value: "0.68"
+      - key: AI_ROUTING_TIMEOUT_MS
+        value: "12000"
+      - key: SMTP_VERIFY_ON_START
+        value: "true"
+      - key: API_RATE_LIMIT
+        value: "90"
+      - key: INQUIRY_RATE_LIMIT
+        value: "8"
+      - key: CHAT_RATE_LIMIT
+        value: "20"
+      - key: ANALYTICS_RATE_LIMIT
+        value: "240"
+      # Render free services sleep after ~15 min idle. These keep clounge-ai
+      # warm and bound the proxy so a cold start cannot exceed the 30s
+      # request deadline and strand the visitor.
+      - key: AI_KEEPALIVE_MINUTES
+        value: "4"
+      - key: KEEPALIVE_ENABLED
+        value: "true"
+      - key: KEEPALIVE_JITTER_SECONDS
+        value: "45"
+      # The public URL of THIS service, used for the self-ping. Render also
+      # injects RENDER_EXTERNAL_URL, which the code falls back to; this is the
+      # explicit form so the behaviour does not depend on the platform.
+      - key: SELF_URL
+        value: https://thecloungeworld.com
+      - key: AI_STREAM_TIMEOUT_MS
+        value: "20000"
+      - key: AI_STREAM_COLD_TIMEOUT_MS
+        value: "25000"
+      - key: ANALYTICS_RETENTION_DAYS
+        value: "180"
+      - key: PII_RETENTION_DAYS
+        value: "180"
+      - key: CHAT_RETENTION_DAYS
+        value: "30"
+      - key: SITE_SOURCE
+        value: thecloungeworld.com
+      - key: WHATSAPP_NUMBER
+        value: "201114399976"
+      - key: DESK_CONCIERGE
+        value: Concierge@TheCLoungeWorld.com
+      - key: DESK_EXECUTIVE
+        value: Executive@TheCLoungeWorld.com
+      - key: DESK_PRIVATE
+        value: Private@TheCLoungeWorld.com
+      - key: SMTP_HOST
+        value: smtp.zoho.com
+      - key: SMTP_PORT
+        value: "465"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      # Optional HTTPS mail transport. Set ONE of these to bypass Render's
+      # outbound SMTP block entirely (free tier blocks 25/465/587).
+      # Takes precedence over SMTP when present.
+      - key: RESEND_API_KEY
+        sync: false
+      - key: BREVO_API_KEY
+        sync: false
+      - key: SMTP_TIMEOUT_MS
+        value: "10000"
+      - key: MAIL_DEADLINE_MS
+        value: "15000"
+      - key: SMTP_FROM
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT_BASE64
+        sync: false
+      - key: AI_SERVICE_KEY
+        sync: false
+      - key: LOG_HASH_SALT
+        sync: false
+
+  # ---------------------------------------------------------------------------
+  # clounge-ai — Claude-powered private concierge (Python / FastAPI)
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: clounge-ai
+    runtime: python
+    plan: starter
+    region: frankfurt
+    branch: main
+    rootDir: ai-service
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1 --proxy-headers --forwarded-allow-ips "*"
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: PYTHON_VERSION
+        value: "3.13.11"
+      - key: ANTHROPIC_MODEL
+        value: claude-sonnet-5
+      - key: ANTHROPIC_UTILITY_MODEL
+        value: claude-haiku-4-5-20251001
+      - key: ANTHROPIC_TIMEOUT_SECONDS
+        value: "40"
+      - key: ANTHROPIC_MAX_RETRIES
+        value: "2"
+      - key: MODEL_FALLBACK_CHAIN
+        value: claude-sonnet-5,claude-opus-4-8,claude-sonnet-4-6,claude-haiku-4-5-20251001
+      # v73. Only needed when ANTHROPIC_API_KEY is an ORGANISATION key rather
+      # than a workspace-scoped one. An organisation key without this header
+      # returns HTTP 400 on every call — the exact cause of the 06-09-2026
+      # outage, in which the concierge served the holding reply to every
+      # visitor while /health reported "connected": true.
+      - key: ANTHROPIC_WORKSPACE_ID
+        sync: false
+      - key: STARTUP_SELF_TEST
+        value: "true"
+      - key: SELF_HEAL_MINUTES
+        value: "5"
+      - key: KEEPALIVE_ENABLED
+        value: "true"
+      - key: KEEPALIVE_MINUTES
+        value: "4"
+      - key: KEEPALIVE_JITTER_SECONDS
+        value: "45"
+      - key: SELF_URL
+        value: https://clounge-ai.onrender.com
+      - key: PEER_URL
+        value: https://thecloungeworld.com
+      - key: HONEST_FALLBACK
+        value: "true"
+      - key: FALLBACK_IS_LOUD
+        value: "true"
+      - key: INJECTION_BLOCK_SCORE
+        value: "3"
+      - key: INJECTION_MAX_STRIKES
+        value: "4"
+      - key: MAX_HISTORY_TURNS
+        value: "10"
+      - key: MAX_MESSAGE_CHARS
+        value: "1200"
+      # Sonnet 5's tokenizer produces ~30% more tokens for the same text and
+      # max_tokens caps total output, so this is deliberately generous.
+      - key: MAX_NEW_TOKENS
+        value: "1400"
+      - key: MAX_OUTPUT_CHARS
+        value: "1100"
+      - key: MAX_SESSIONS
+        value: "5000"
+      - key: MAX_BODY_BYTES
+        value: "32768"
+      # NOTE: TEMPERATURE / TOP_P are intentionally absent. Claude Sonnet 5
+      # returns HTTP 400 for a non-default sampling parameter, and this service
+      # swallows provider errors, so setting them here would silently drop the
+      # site back to the deterministic concierge. engine.py omits them for this
+      # model family regardless; do not re-add them here.
+      - key: RATE_LIMIT_PER_MIN
+        value: "20"
+      - key: SESSION_RATE_LIMIT_PER_MIN
+        value: "12"
+      - key: SESSION_TTL_SECONDS
+        value: "21600"
+      - key: REQUIRE_SERVICE_KEY
+        value: "true"
+      - key: ALLOWED_ORIGINS
+        value: https://clounge-web.onrender.com,https://www.thecloungeworld.com
+      - key: LOG_PROMPTS
+        value: "false"
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: SERVICE_API_KEY
+        sync: false
+      - key: ADMIN_API_KEY
+        sync: false
